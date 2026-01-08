@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   FileText,
@@ -9,6 +9,7 @@ import {
   Clock,
   BookOpen,
 } from "lucide-react";
+import dataService from "./dataService.js";
 import "./TrainerSpace.css";
 
 // --- الثوابت والبيانات (Constants & Data) ---
@@ -19,14 +20,6 @@ const TIME_SLOTS = [
   { id: "s2", label: "الحصة الثانية (11:00 - 13:30)" },
   { id: "s3", label: "الحصة الثالثة (13:30 - 16:00)" },
   { id: "s4", label: "الحصة الرابعة (16:00 - 18:30)" },
-];
-
-// 2. المواد الدراسية (Modules)
-const SUBJECTS = [
-  { id: "m1", name: "M101: الخوارزميات (Algorithms)" },
-  { id: "m2", name: "M102: تطوير الواجهات (Front-end)" },
-  { id: "m3", name: "M103: قواعد البيانات (Databases)" },
-  { id: "m4", name: "M104: اللغة الإنجليزية" },
 ];
 
 const GROUPS_DATA = {
@@ -40,34 +33,6 @@ const GROUPS_DATA = {
   ],
 };
 
-// تحديث هيكل بيانات الطلاب لدعم تعدد المواد
-const INITIAL_STUDENTS = [
-  {
-    id: 1,
-    name: "أحمد محمد",
-    grades: {
-      m1: { cc1: 15, cc2: 14, efm: "" },
-      m2: { cc1: 10, cc2: 12, efm: "" },
-    },
-    absent: false,
-  },
-  {
-    id: 2,
-    name: "سارة علي",
-    grades: {
-      m1: { cc1: 18, cc2: 19, efm: "" },
-      m2: { cc1: 17, cc2: 18, efm: "" },
-    },
-    absent: false,
-  },
-  {
-    id: 3,
-    name: "كريم يوسف",
-    grades: {},
-    absent: false,
-  },
-];
-
 const TrainerSpace = () => {
   // --- States ---
   const [step, setStep] = useState(1);
@@ -79,8 +44,29 @@ const TrainerSpace = () => {
   const [selectedSubject, setSelectedSubject] = useState(""); // للمادة
   const [selectedSession, setSelectedSession] = useState(""); // للحصة الزمنية
 
-  const [students, setStudents] = useState(INITIAL_STUDENTS);
+  const [students, setStudents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // جلب البيانات الأساسية عند التحميل
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const subjectsData = await dataService.fetchSubjects();
+        setSubjects(subjectsData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("فشل في جلب البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, []);
 
   // --- Handlers ---
   const handleYearChange = (e) => {
@@ -88,9 +74,20 @@ const TrainerSpace = () => {
     setSelectedGroup("");
   };
 
-  const handleGroupConfirm = () => {
+  const handleGroupConfirm = async () => {
     if (selectedYear && selectedGroup) {
-      setStep(2);
+      try {
+        setLoading(true);
+        // جلب الطلاب للفوج المختار
+        const groupStudents = await dataService.getStudentsInGroup(selectedGroup);
+        setStudents(groupStudents);
+        setStep(2);
+      } catch (err) {
+        console.error("Error fetching students:", err);
+        setError("فشل في جلب بيانات الطلاب");
+      } finally {
+        setLoading(false);
+      }
     } else {
       alert("المرجو اختيار السنة والفوج");
     }
@@ -226,8 +223,7 @@ const TrainerSpace = () => {
 
     const saveGrades = () =>
       alert(
-        `تم حفظ نقط مادة: ${
-          SUBJECTS.find((s) => s.id === selectedSubject)?.name
+        `تم حفظ نقط مادة: ${subjects.find((s) => s.id === selectedSubject)?.name
         }`,
       );
 
@@ -271,7 +267,7 @@ const TrainerSpace = () => {
             onChange={(e) => setSelectedSubject(e.target.value)}
           >
             <option value="">-- يرجى اختيار المادة أولاً --</option>
-            {SUBJECTS.map((subj) => (
+            {subjects.map((subj) => (
               <option key={subj.id} value={subj.id}>
                 {subj.name}
               </option>
@@ -283,7 +279,7 @@ const TrainerSpace = () => {
         {selectedSubject ? (
           <div className="fade-in">
             <h4 style={{ marginTop: "20px", color: "#555" }}>
-              إدخال نقط: {SUBJECTS.find((s) => s.id === selectedSubject)?.name}
+              إدخال نقط: {subjects.find((s) => s.id === selectedSubject)?.name}
             </h4>
             <table className="data-table">
               <thead>
@@ -463,9 +459,8 @@ const TrainerSpace = () => {
                     </td>
                     <td>
                       <button
-                        className={`btn ${
-                          student.absent ? "btn-success" : "btn-primary"
-                        }`}
+                        className={`btn ${student.absent ? "btn-success" : "btn-primary"
+                          }`}
                         style={{ padding: "5px 10px", fontSize: "0.8rem" }}
                         onClick={() => toggleAbsence(student.id)}
                       >

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import AdministrationSpace from "./AdministrationSpace.js";
 import StagiereSpace from "./stagiereSpace.js";
 import TrainerSpace from "./TrainerSpace.js";
+import dataService from "./dataService.js";
+import { Dashboard, Schedule, Resources, Absence, Grades } from "./Components";
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,29 +18,34 @@ const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // قاعدة بيانات تجريبية للمستخدمين
-  const usersList = [
-    { id: 1, username: "admin", password: "123", role: "مدير" },
-    { id: 2, username: "trainer1", password: "456", role: "مدرب" },
-    { id: 3, username: "student1", password: "789", role: "متدرب" },
-  ];
-
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const user = usersList.find(
-      (u) => u.username === username && u.password === password,
-    );
+    setLoading(true);
+    setError("");
 
-    if (user) {
-      onLogin(user); // حفظ بيانات المستخدم في الحالة العامة
-      // التوجيه بناءً على الدور
-      if (user.role === "مدير") navigate("/admin");
-      else if (user.role === "مدرب") navigate("/trainer");
-      else if (user.role === "متدرب") navigate("/stagiere");
-    } else {
-      setError("اسم المستخدم أو كلمة المرور غير صحيحة");
+    try {
+      const usersList = await dataService.fetchUsers();
+      const user = usersList.find(
+        (u) => u.username === username && u.password === password,
+      );
+
+      if (user) {
+        onLogin(user); // حفظ بيانات المستخدم في الحالة العامة
+        // التوجيه بناءً على الدور
+        if (user.role === "مدير") navigate("/admin");
+        else if (user.role === "مدرب") navigate("/trainer");
+        else if (user.role === "متدرب") navigate("/stagiere");
+      } else {
+        setError("اسم المستخدم أو كلمة المرور غير صحيحة");
+      }
+    } catch (err) {
+      setError("حدث خطأ في جلب البيانات. يرجى المحاولة مرة أخرى.");
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,14 +79,14 @@ const Login = ({ onLogin }) => {
           />
         </div>
 
-        <button type="submit" style={styles.loginBtn}>
-          دخول
+        <button type="submit" style={styles.loginBtn} disabled={loading}>
+          {loading ? "جاري التحميل..." : "دخول"}
         </button>
 
         <div style={styles.hint}>
-          <p>تنبيه للتجربة:</p>
+          <p>بيانات التجربة من db.json:</p>
           <small>
-            admin / 123 (مدير) | trainer1 / 456 (مدرب) | student1 / 789 (متدرب)
+            admin / 123 (مدير) | trainer1 / 456 (مدرب) | student1 / pass1 (متدرب)
           </small>
         </div>
       </form>
@@ -115,15 +122,18 @@ export default function App() {
         />
         <Route
           path="/stagiere/*"
-          element={
-            user?.role === "متدرب" ? <StagiereSpace /> : <Navigate to="/" />
-          }
+          // element={
+          //   user?.role === "متدرب" ? <StagiereSpace /> : <Navigate to="/" />
+          // }
+          element={<StagiereSpace />}
         />
+      
 
         {/* مسار افتراضي */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/?e=1" />} />
       </Routes>
     </Router>
+    
   );
 }
 

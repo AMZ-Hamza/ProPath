@@ -1,4 +1,4 @@
-import  { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   Layers,
@@ -13,49 +13,47 @@ import {
   XCircle,
   FileText,
 } from "lucide-react";
+import dataService from "./dataService.js";
 import "./AdministrationSpace.css"; // استيراد ملف التنسيق
 
-export default function AdministrationSpace () {
+export default function AdministrationSpace() {
   // الحالة لتحديد الصفحة النشطة
   const [activeTab, setActiveTab] = useState("users");
 
-  // --- بيانات تجريبية (Mock Data) ---
-  const [users] = useState([
-    {
-      id: 1,
-      name: "أحمد العلوي",
-      role: "مكون",
-      email: "ahmed@propath.com",
-      status: "نشط",
-    },
-    {
-      id: 2,
-      name: "سارة المنصوري",
-      role: "متدرب",
-      email: "sara@student.com",
-      status: "نشط",
-    },
-    {
-      id: 3,
-      name: "كريم بناني",
-      role: "إداري",
-      email: "karim@admin.com",
-      status: "موقوف",
-    },
-    {
-      id: 4,
-      name: "ليلى العمري",
-      role: "متدرب",
-      email: "laila@student.com",
-      status: "نشط",
-    },
-  ]);
+  // --- حالات البيانات المجلوبة من API ---
+  const [users, setUsers] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [departments] = useState([
+  // جلب البيانات عند تحميل المكون
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [usersData, subjectsData] = await Promise.all([
+          dataService.fetchUsers(),
+          dataService.fetchSubjects(),
+        ]);
+        setUsers(usersData);
+        setSubjects(subjectsData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("فشل في جلب البيانات");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // بيانات افتراضية للأقسام (يمكن جلبها من API لاحقاً)
+  const departments = [
     { id: 1, name: "تطوير الرقمي (Dev Digital)", modules: 5, totalHours: 120 },
     { id: 2, name: "البنية التحتية للشبكات", modules: 4, totalHours: 100 },
     { id: 3, name: "الذكاء الاصطناعي", modules: 6, totalHours: 140 },
-  ]);
+  ];
 
   // --- المكونات الفرعية (Sub-components) ---
 
@@ -70,107 +68,111 @@ export default function AdministrationSpace () {
         </button>
       </div>
 
-      <div className="table-container">
-        <div className="search-bar">
-          <div style={{ position: "relative", flex: 1 }}>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="بحث عن مستخدم..."
-              style={{ width: "100%" }}
-            />
-            <Search
-              size={18}
-              style={{
-                position: "absolute",
-                left: "10px",
-                top: "10px",
-                color: "#94a3b8",
-              }}
-            />
-          </div>
-          <select className="form-control" style={{ width: "150px" }}>
-            <option>الكل</option>
-            <option>مكون</option>
-            <option>متدرب</option>
-          </select>
-        </div>
+      {loading && <p>جاري تحميل البيانات...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <table>
-          <thead>
-            <tr>
-              <th>الاسم الكامل</th>
-              <th>الدور (Role)</th>
-              <th>البريد الإلكتروني</th>
-              <th>الحالة</th>
-              <th>الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td style={{ fontWeight: 500 }}>{user.name}</td>
-                <td>
-                  <span
-                    className={`badge ${
-                      user.role === "مكون"
-                        ? "badge-purple"
-                        : user.role === "متدرب"
-                        ? "badge-green"
-                        : "badge-gray"
-                    }`}
-                  >
-                    {user.role}
-                  </span>
-                </td>
-                <td style={{ color: "#64748b" }}>{user.email}</td>
-                <td>
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px",
-                      color: user.status === "نشط" ? "#16a34a" : "#dc2626",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {user.status === "نشط" ? (
-                      <CheckCircle size={14} />
-                    ) : (
-                      <XCircle size={14} />
-                    )}
-                    {user.status}
-                  </span>
-                </td>
-                <td>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        color: "#2563eb",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        color: "#dc2626",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </td>
+      {!loading && !error && (
+        <div className="table-container">
+          <div className="search-bar">
+            <div style={{ position: "relative", flex: 1 }}>
+              <input
+                type="text"
+                className="search-input"
+                placeholder="بحث عن مستخدم..."
+                style={{ width: "100%" }}
+              />
+              <Search
+                size={18}
+                style={{
+                  position: "absolute",
+                  left: "10px",
+                  top: "10px",
+                  color: "#94a3b8",
+                }}
+              />
+            </div>
+            <select className="form-control" style={{ width: "150px" }}>
+              <option>الكل</option>
+              <option>مكون</option>
+              <option>متدرب</option>
+            </select>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>الاسم الكامل</th>
+                <th>الدور (Role)</th>
+                <th>البريد الإلكتروني</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr><td colSpan="5">لا توجد بيانات مستخدمين</td></tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id}>
+                    <td style={{ fontWeight: 500 }}>{user.name}</td>
+                    <td>
+                      <span
+                        className={`badge ${user.role === "مدرب"
+                            ? "badge-purple"
+                            : user.role === "متدرب"
+                              ? "badge-green"
+                              : "badge-gray"
+                          }`}
+                      >
+                        {user.role}
+                      </span>
+                    </td>
+                    <td style={{ color: "#64748b" }}>{user.email}</td>
+                    <td>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          color: "#16a34a",
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        <CheckCircle size={14} />
+                        نشط
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#2563eb",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Edit size={18} />
+                        </button>
+                        <button
+                          style={{
+                            border: "none",
+                            background: "transparent",
+                            color: "#dc2626",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 
@@ -537,7 +539,7 @@ export default function AdministrationSpace () {
   return (
     <div className="admin-container">
       {/* القائمة الجانبية Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar2">
         <div className="sidebar-header">
           <h1>Propath</h1>
           <p style={{ fontSize: "0.8rem", color: "#94a3b8" }}>فضاء الإدارة</p>
@@ -554,9 +556,8 @@ export default function AdministrationSpace () {
 
           <button
             onClick={() => setActiveTab("structure")}
-            className={`nav-btn ${
-              activeTab === "structure" ? "active structure" : ""
-            }`}
+            className={`nav-btn ${activeTab === "structure" ? "active structure" : ""
+              }`}
           >
             <Layers size={20} />
             <span>الهيكلة والوحدات</span>
@@ -564,9 +565,8 @@ export default function AdministrationSpace () {
 
           <button
             onClick={() => setActiveTab("announcements")}
-            className={`nav-btn ${
-              activeTab === "announcements" ? "active announcements" : ""
-            }`}
+            className={`nav-btn ${activeTab === "announcements" ? "active announcements" : ""
+              }`}
           >
             <Bell size={20} />
             <span>الإشعارات العامة</span>
@@ -574,9 +574,8 @@ export default function AdministrationSpace () {
 
           <button
             onClick={() => setActiveTab("reports")}
-            className={`nav-btn ${
-              activeTab === "reports" ? "active reports" : ""
-            }`}
+            className={`nav-btn ${activeTab === "reports" ? "active reports" : ""
+              }`}
           >
             <BarChart2 size={20} />
             <span>التقارير والإحصاء</span>

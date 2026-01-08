@@ -1,40 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Download, FileText, AlertCircle } from "lucide-react";
+import dataService from "./dataService";
 
 // --- 1. صفحة لوحة القيادة ---
 export const Dashboard = () => {
-  const news = [
-    {
-      id: 1,
-      title: "انطلاق الامتحانات الجهوية",
-      date: "2024-05-20",
-      content: "تعلن الإدارة أن الامتحانات الجهوية ستبدأ يوم الاثنين القادم...",
-    },
-    {
-      id: 2,
-      title: "عطلة عيد الأضحى",
-      date: "2024-06-10",
-      content: "بمناسبة عيد الأضحى المبارك، ستتوقف الدراسة لمدة أسبوع...",
-    },
-  ];
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const newsData = await dataService.fetchNews();
+        setNews(newsData);
+      } catch (err) {
+        console.error("Error fetching news:", err);
+        setError("فشل في جلب الأخبار");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
+  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
 
   return (
     <div className="card">
       <h2 className="page-title">لوحة القيادة - آخر الأخبار</h2>
-      {news.map((item) => (
-        <div
-          key={item.id}
-          style={{
-            marginBottom: "20px",
-            borderBottom: "1px solid #eee",
-            paddingBottom: "10px",
-          }}
-        >
-          <h3 style={{ color: "#2563eb" }}>{item.title}</h3>
-          <small style={{ color: "#6b7280" }}>{item.date}</small>
-          <p style={{ marginTop: "5px" }}>{item.content}</p>
-        </div>
-      ))}
+      {news.length === 0 ? (
+        <p>لا توجد أخبار حالياً</p>
+      ) : (
+        news.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              marginBottom: "20px",
+              borderBottom: "1px solid #eee",
+              paddingBottom: "10px",
+            }}
+          >
+            <h3 style={{ color: "#2563eb" }}>{item.title}</h3>
+            <small style={{ color: "#6b7280" }}>{item.date}</small>
+            <p style={{ marginTop: "5px" }}>{item.content}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 };
@@ -150,17 +163,33 @@ export const Resources = () => {
 
 // --- 4. صفحة سجل الغياب ---
 export const Absence = () => {
-  // محاكاة جدول حصص، true تعني غائب
-  const schedule = [
-    { day: "الاثنين", t8_10: false, t10_12: true, t2_4: false, t4_6: false },
-    { day: "الثلاثاء", t8_10: false, t10_12: false, t2_4: false, t4_6: false },
-    { day: "الأربعاء", t8_10: false, t10_12: false, t2_4: true, t4_6: true },
-    { day: "الخميس", t8_10: false, t10_12: false, t2_4: false, t4_6: false },
-    { day: "الجمعة", t8_10: false, t10_12: false, t2_4: false, t4_6: false },
-  ];
+  const [attendance, setAttendance] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const Cell = ({ absent }) => (
-    <td className={absent ? "absent-cell" : ""}>{absent ? "غائب" : "حاضر"}</td>
+  useEffect(() => {
+    const fetchAttendanceData = async () => {
+      try {
+        const attendanceData = await dataService.fetchAttendances();
+        setAttendance(attendanceData);
+      } catch (err) {
+        console.error("Error fetching attendance:", err);
+        setError("فشل في جلب بيانات الحضور");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendanceData();
+  }, []);
+
+  if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
+  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
+
+  const Cell = ({ status }) => (
+    <td className={status === "absent" ? "absent-cell" : ""}>
+      {status === "present" ? "حاضر" : "غائب"}
+    </td>
   );
 
   return (
@@ -173,23 +202,23 @@ export const Absence = () => {
       <table className="data-table">
         <thead>
           <tr>
-            <th>اليوم / التوقيت</th>
-            <th>08:30 - 11:00</th>
-            <th>11:00 - 13:30</th>
-            <th>13:30 - 16:00</th>
-            <th>16:00 - 18:30</th>
+            <th>التاريخ</th>
+            <th>الحصة</th>
+            <th>الحالة</th>
           </tr>
         </thead>
         <tbody>
-          {schedule.map((row, idx) => (
-            <tr key={idx}>
-              <td style={{ fontWeight: "bold" }}>{row.day}</td>
-              <Cell absent={row.t8_10} />
-              <Cell absent={row.t10_12} />
-              <Cell absent={row.t2_4} />
-              <Cell absent={row.t4_6} />
-            </tr>
-          ))}
+          {attendance.length === 0 ? (
+            <tr><td colSpan="3">لا توجد بيانات حضور</td></tr>
+          ) : (
+            attendance.map((record) => (
+              <tr key={record.id}>
+                <td>{record.date}</td>
+                <td>{record.session}</td>
+                <Cell status={record.status} />
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </div>
@@ -198,24 +227,35 @@ export const Absence = () => {
 
 // --- 5. صفحة كشف النقط ---
 export const Grades = () => {
-  const subjects = [
-    {
-      name: "تطوير الواجهات (Front-end)",
-      cc1: 14,
-      cc2: 15,
-      cc3: 16,
-      efm: null,
-    },
-    {
-      name: "قواعد البيانات (Databases)",
-      cc1: 12,
-      cc2: 13,
-      cc3: 11,
-      efm: null,
-    },
-    { name: "اللغة الإنجليزية", cc1: 18, cc2: 17, cc3: 18, efm: 16 },
-    { name: "agile ", cc1: 18, cc2: 17, cc3: 14, efm: 16 },
-  ];
+  const [subjects, setSubjects] = useState([]);
+  const [studentGrades, setStudentGrades] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchGradesData = async () => {
+      try {
+        // Get the first student as example (you can make this dynamic)
+        const students = await dataService.fetchStudents();
+        const subjects = await dataService.fetchSubjects();
+
+        if (students.length > 0) {
+          setStudentGrades(students[0].grades || {});
+        }
+        setSubjects(subjects);
+      } catch (err) {
+        console.error("Error fetching grades:", err);
+        setError("فشل في جلب النقط");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGradesData();
+  }, []);
+
+  if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
+  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
 
   return (
     <div className="card">
@@ -226,23 +266,28 @@ export const Grades = () => {
             <th rowSpan="2">المادة</th>
             <th colSpan="3">المراقبة المستمرة</th>
             <th rowSpan="2">الامتحان النهائي (EFM)</th>
+            <th rowSpan="2">النقطة النهائية</th>
           </tr>
           <tr>
-            <th>الفرض 1</th>
-            <th>الفرض 2</th>
-            <th>الفرض 3</th>
+            <th>CC1</th>
+            <th>CC2</th>
+            <th>CC3</th>
           </tr>
         </thead>
         <tbody>
-          {subjects.map((subj, idx) => (
-            <tr key={idx}>
-              <td style={{ textAlign: "right" }}>{subj.name}</td>
-              <td>{subj.cc1}</td>
-              <td>{subj.cc2}</td>
-              <td>{subj.cc3}</td>
-              <td>{subj.efm ? subj.efm : "-"}</td>
-            </tr>
-          ))}
+          {subjects.map((subj) => {
+            const grades = studentGrades[subj.id] || { cc1: "-", cc2: "-", cc3: "-", efm: "-", final: "-" };
+            return (
+              <tr key={subj.id}>
+                <td style={{ textAlign: "right" }}>{subj.name}</td>
+                <td>{grades.cc1 || "-"}</td>
+                <td>{grades.cc2 || "-"}</td>
+                <td>{grades.cc3 || "-"}</td>
+                <td>{grades.efm || "-"}</td>
+                <td>{grades.final || "-"}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

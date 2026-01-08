@@ -32,33 +32,33 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       </div>
 
       <nav>
-        <Link to="/" className={isActive("/")} onClick={toggleSidebar}>
+        <Link to="/stagiere" className={isActive("/stagiere")} onClick={toggleSidebar}>
           <LayoutDashboard size={20} /> لوحة القيادة
         </Link>
         <Link
-          to="/schedule"
-          className={isActive("/schedule")}
+          to="/stagiere/schedule"
+          className={isActive("/stagiere/schedule")}
           onClick={toggleSidebar}
         >
           <Calendar size={20} /> الجدول الزمني
         </Link>
         <Link
-          to="/resources"
-          className={isActive("/resources")}
+          to="/stagiere/resources"
+          className={isActive("/stagiere/resources")}
           onClick={toggleSidebar}
         >
           <BookOpen size={20} /> الموارد البيداغوجية
         </Link>
         <Link
-          to="/absence"
-          className={isActive("/absence")}
+          to="/stagiere/absence"
+          className={isActive("/stagiere/absence")}
           onClick={toggleSidebar}
         >
           <UserX size={20} /> سجل الغياب
         </Link>
         <Link
           to="/grades"
-          className={isActive("/grades")}
+          className={isActive("/stagiere/grades")}
           onClick={toggleSidebar}
         >
           <ClipboardList size={20} /> كشف النقط
@@ -74,31 +74,31 @@ function StagiereSpace() {
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   return (
-    <Router>
-      <div className="app-container">
-        {/* زر القائمة - يظهر دائماً */}
-        <div className="menu-icon" onClick={toggleSidebar}>
-          {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-        </div>
-
-        {/* القائمة الجانبية */}
-        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-        {/* المحتوى الرئيسي */}
-        <div
-          className="main-content"
-          onClick={() => isSidebarOpen && setSidebarOpen(false)}
-        >
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/absence" element={<Absence />} />
-            <Route path="/grades" element={<Grades />} />
-          </Routes>
-        </div>
+    <div className="app-container">
+      {/* زر القائمة - يظهر دائماً */}
+      <div className="menu-icon" onClick={toggleSidebar}>
+        {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
       </div>
-    </Router>
+
+      {/* القائمة الجانبية */}
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+
+      {/* المحتوى الرئيسي */}
+      <div
+        className="main-content"
+        onClick={() => isSidebarOpen && setSidebarOpen(false)}
+      >
+
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/absence" element={<Absence />} />
+          <Route path="/grades" element={<Grades />} />
+        </Routes>
+      
+      </div>
+    </div>
   );
 }
 
