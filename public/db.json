@@ -1,0 +1,438 @@
+{
+    "settings": {
+        "school": "ProPath Institute",
+        "semester": "Spring 2025",
+        "grading_scale": {
+            "min": 0,
+            "max": 20,
+            "passing_mark": 10
+        },
+        "created_at": "2025-01-01T08:00:00Z"
+    },
+    "users": [
+        {
+            "id": 1,
+            "username": "admin",
+            "password": "123",
+            "role": "مدير",
+            "name": "مدير النظام",
+            "email": "admin@propath.test"
+        },
+        {
+            "id": 2,
+            "username": "trainer1",
+            "password": "456",
+            "role": "مدرب",
+            "name": "محمد الزهري",
+            "email": "m.zahri@propath.test"
+        },
+        {
+            "id": 3,
+            "username": "trainer2",
+            "password": "789",
+            "role": "مدرب",
+            "name": "ليلى بنعمر",
+            "email": "l.benamar@propath.test"
+        },
+        {
+            "id": 4,
+            "username": "student1",
+            "password": "pass1",
+            "role": "متدرب",
+            "name": "أحمد محمد",
+            "email": "ahmed@example.com"
+        },
+        {
+            "id": 5,
+            "username": "student2",
+            "password": "pass2",
+            "role": "متدرب",
+            "name": "سارة علي",
+            "email": "sara@example.com"
+        }
+    ],
+    "subjects": [
+        {
+            "id": "m1",
+            "code": "CS101",
+            "name": "الخوارزميات",
+            "credits": 3,
+            "teacherId": 2
+        },
+        {
+            "id": "m2",
+            "code": "FE101",
+            "name": "تطوير الواجهات",
+            "credits": 3,
+            "teacherId": 2
+        },
+        {
+            "id": "m3",
+            "code": "DB101",
+            "name": "قواعد البيانات",
+            "credits": 3,
+            "teacherId": 3
+        },
+        {
+            "id": "m4",
+            "code": "EN101",
+            "name": "اللغة الإنجليزية التقنية",
+            "credits": 2,
+            "teacherId": 3
+        }
+    ],
+    "time_slots": [
+        {
+            "id": "s1",
+            "label": "08:30 - 11:00"
+        },
+        {
+            "id": "s2",
+            "label": "11:00 - 13:30"
+        },
+        {
+            "id": "s3",
+            "label": "13:30 - 16:00"
+        }
+    ],
+    "groups": [
+        {
+            "id": "dev101",
+            "name": "تطوير رقمي 101",
+            "year": 1,
+            "time_slot": "s1"
+        },
+        {
+            "id": "inf101",
+            "name": "بنية تحتية 101",
+            "year": 1,
+            "time_slot": "s2"
+        },
+        {
+            "id": "dev201",
+            "name": "تطوير رقمي 201",
+            "year": 2,
+            "time_slot": "s1"
+        },
+        {
+            "id": "inf201",
+            "name": "بنية تحتية 201",
+            "year": 2,
+            "time_slot": "s3"
+        }
+    ],
+    "students": [
+        {
+            "id": 11,
+            "name": "أحمد محمد",
+            "username": "ahmed",
+            "email": "ahmed@example.com",
+            "phone": "+212600000011",
+            "year": 1,
+            "group": "dev101",
+            "enrolled_subjects": [
+                "m1",
+                "m2",
+                "m4"
+            ],
+            "grades": {
+                "m1": {
+                    "cc1": 15,
+                    "cc2": 14,
+                    "efm": null,
+                    "final": null
+                },
+                "m2": {
+                    "cc1": 10,
+                    "cc2": 12,
+                    "efm": null,
+                    "final": null
+                },
+                "m4": {
+                    "cc1": 13,
+                    "cc2": 14,
+                    "efm": null,
+                    "final": null
+                }
+            },
+            "grades_history": [
+                {
+                    "subject": "m1",
+                    "field": "cc1",
+                    "old": null,
+                    "new": 15,
+                    "changed_at": "2025-01-15T10:00:00Z",
+                    "by": 2
+                }
+            ],
+            "absent": false,
+            "created_at": "2024-09-10T09:00:00Z"
+        },
+        {
+            "id": 12,
+            "name": "سارة علي",
+            "username": "sara",
+            "email": "sara@example.com",
+            "phone": "+212600000012",
+            "year": 1,
+            "group": "dev101",
+            "enrolled_subjects": [
+                "m1",
+                "m2"
+            ],
+            "grades": {
+                "m1": {
+                    "cc1": 18,
+                    "cc2": 19,
+                    "efm": 17,
+                    "final": null
+                },
+                "m2": {
+                    "cc1": 17,
+                    "cc2": 18,
+                    "efm": null,
+                    "final": null
+                }
+            },
+            "grades_history": [
+                {
+                    "subject": "m1",
+                    "field": "efm",
+                    "old": null,
+                    "new": 17,
+                    "changed_at": "2025-02-10T12:00:00Z",
+                    "by": 2
+                }
+            ],
+            "absent": false,
+            "created_at": "2024-09-11T09:30:00Z"
+        },
+        {
+            "id": 13,
+            "name": "كريم يوسف",
+            "username": "karim",
+            "email": "karim@example.com",
+            "phone": "+212600000013",
+            "year": 1,
+            "group": "dev101",
+            "enrolled_subjects": [
+                "m1",
+                "m2",
+                "m3"
+            ],
+            "grades": {},
+            "grades_history": [],
+            "absent": false,
+            "created_at": "2024-09-12T10:00:00Z"
+        },
+        {
+            "id": 21,
+            "name": "هشام بلال",
+            "username": "hicham",
+            "email": "hicham@example.com",
+            "phone": "+212600000021",
+            "year": 2,
+            "group": "dev201",
+            "enrolled_subjects": [
+                "m1",
+                "m3"
+            ],
+            "grades": {
+                "m1": {
+                    "cc1": 12,
+                    "cc2": 14,
+                    "efm": 13,
+                    "final": null
+                },
+                "m3": {
+                    "cc1": 11,
+                    "cc2": 10,
+                    "efm": null,
+                    "final": null
+                }
+            },
+            "grades_history": [],
+            "absent": false,
+            "created_at": "2023-09-05T08:30:00Z"
+        },
+        {
+            "id": 22,
+            "name": "منى الشامي",
+            "username": "mona",
+            "email": "mona@example.com",
+            "phone": "+212600000022",
+            "year": 2,
+            "group": "inf201",
+            "enrolled_subjects": [
+                "m3",
+                "m4"
+            ],
+            "grades": {
+                "m3": {
+                    "cc1": 16,
+                    "cc2": 15,
+                    "efm": null,
+                    "final": null
+                }
+            },
+            "grades_history": [],
+            "absent": false,
+            "created_at": "2023-09-06T09:00:00Z"
+        }
+    ],
+    "news": [
+        {
+            "id": 101,
+            "title": "انطلاق الامتحانات الجهوية",
+            "date": "2025-05-20",
+            "created_at": "2025-05-01T08:00:00Z",
+            "content": "تعلن الإدارة أن الامتحانات الجهوية ستبدأ يوم الاثنين القادم، الرجاء الالتزام بالمواعيد والتعليمات."
+        },
+        {
+            "id": 102,
+            "title": "عطلة عيد الأضحى",
+            "date": "2025-06-10",
+            "created_at": "2025-05-25T09:00:00Z",
+            "content": "بمناسبة عيد الأضحى المبارك، ستتوقف الدراسة لمدة أسبوع. تقبل الله من الجميع."
+        },
+        {
+            "id": 103,
+            "title": "ورشة عمل: Git & GitHub",
+            "date": "2025-03-12",
+            "created_at": "2025-02-25T11:00:00Z",
+            "content": "ستنظم الورشة من طرف المدرب محمد الزهري حول أساسيات Git و GitHub وسير العمل التعاوني."
+        }
+    ],
+    "lessons": [
+        {
+            "id": 1001,
+            "title": "مقدمة في الخوارزميات",
+            "subjectId": "m1",
+            "groupId": "dev101",
+            "date": "2025-01-10",
+            "notes": "مفاهيم أساسية: التعقيد، الترتيب، البحث.",
+            "resources": [
+                {
+                    "type": "slide",
+                    "name": "algorithms_intro.pdf",
+                    "url": "https://example.com/resources/algorithms_intro.pdf"
+                }
+            ],
+            "created_at": "2025-01-09T10:00:00Z"
+        },
+        {
+            "id": 1002,
+            "title": "HTML & CSS — أساسيات",
+            "subjectId": "m2",
+            "groupId": "dev101",
+            "date": "2025-01-12",
+            "notes": "مراجعة القواعد الأساسية وflexbox.",
+            "resources": [
+                {
+                    "type": "slide",
+                    "name": "html_css_basics.pdf",
+                    "url": "https://example.com/resources/html_css_basics.pdf"
+                }
+            ],
+            "created_at": "2025-01-11T10:00:00Z"
+        },
+        {
+            "id": 2001,
+            "title": "SQL — الاستعلامات الأساسية",
+            "subjectId": "m3",
+            "groupId": "dev201",
+            "date": "2025-01-15",
+            "notes": "SELECT, JOIN, WHERE.",
+            "resources": [],
+            "created_at": "2025-01-14T09:00:00Z"
+        }
+    ],
+    "exercises": [
+        {
+            "id": 3001,
+            "title": "تمارين خوارزميات — تمارين 1",
+            "subjectId": "m1",
+            "groupId": "dev101",
+            "assigned_at": "2025-01-10",
+            "due_date": "2025-01-20",
+            "file": {
+                "name": "alg_ex1.zip",
+                "url": "https://example.com/exercises/alg_ex1.zip"
+            }
+        },
+        {
+            "id": 3002,
+            "title": "تصميم صفحة بسيطة",
+            "subjectId": "m2",
+            "groupId": "dev101",
+            "assigned_at": "2025-01-12",
+            "due_date": "2025-01-22",
+            "file": {
+                "name": "fe_ex1.zip",
+                "url": "https://example.com/exercises/fe_ex1.zip"
+            }
+        }
+    ],
+    "attendances": [
+        {
+            "id": 5001,
+            "studentId": 11,
+            "group": "dev101",
+            "date": "2025-01-10",
+            "session": "s1",
+            "status": "present"
+        },
+        {
+            "id": 5002,
+            "studentId": 12,
+            "group": "dev101",
+            "date": "2025-01-10",
+            "session": "s1",
+            "status": "present"
+        },
+        {
+            "id": 5003,
+            "studentId": 13,
+            "group": "dev101",
+            "date": "2025-01-10",
+            "session": "s1",
+            "status": "absent"
+        },
+        {
+            "id": 5004,
+            "studentId": 21,
+            "group": "dev201",
+            "date": "2025-01-15",
+            "session": "s1",
+            "status": "present"
+        },
+        {
+            "id": 5005,
+            "studentId": 22,
+            "group": "inf201",
+            "date": "2025-01-15",
+            "session": "s3",
+            "status": "present"
+        }
+    ],
+    "attendances_summary": [
+        {
+            "studentId": 11,
+            "total_sessions": 6,
+            "present": 5,
+            "absent": 1
+        },
+        {
+            "studentId": 12,
+            "total_sessions": 6,
+            "present": 6,
+            "absent": 0
+        },
+        {
+            "studentId": 13,
+            "total_sessions": 6,
+            "present": 4,
+            "absent": 2
+        }
+    ]
+}
