@@ -33,7 +33,7 @@ const GROUPS_DATA = {
   ],
 };
 
-const TrainerSpace = () => {
+const TrainerSpace = ({ user, onLogout }) => {
   // --- States ---
   const [step, setStep] = useState(1);
   const [selectedYear, setSelectedYear] = useState("");
@@ -221,11 +221,15 @@ const TrainerSpace = () => {
       );
     };
 
-    const saveGrades = () =>
-      alert(
-        `تم حفظ نقط مادة: ${subjects.find((s) => s.id === selectedSubject)?.name
-        }`,
-      );
+    const saveGrades = async () => {
+      try {
+        await dataService.saveStudents(students);
+        alert(`تم حفظ نقط مادة: ${subjects.find((s) => s.id === selectedSubject)?.name}`);
+      } catch (err) {
+        console.error(err);
+        alert("فشل في حفظ النقط");
+      }
+    };
 
     return (
       <div className="card">
@@ -384,7 +388,25 @@ const TrainerSpace = () => {
           {selectedSession && (
             <button
               className="btn btn-success"
-              onClick={() => alert("تم حفظ الغياب لهذه الحصة")}
+              onClick={async () => {
+                try {
+                  // Create attendance records for selected session
+                  const records = students.map((s) => ({
+                    studentId: s.id,
+                    date: new Date().toLocaleDateString("ar-MA"),
+                    session: selectedSession,
+                    status: s.absent ? "absent" : "present",
+                    group: selectedGroup,
+                  }));
+                  await dataService.addAttendances(records);
+                  // also persist students changes (absent flags)
+                  await dataService.saveStudents(students);
+                  alert("تم حفظ الحضور لهذه الحصة");
+                } catch (err) {
+                  console.error(err);
+                  alert("فشل في حفظ الحضور");
+                }
+              }}
             >
               تأكيد الحضور
             </button>
@@ -485,13 +507,20 @@ const TrainerSpace = () => {
   // 5. واجهة رفع الملفات (لم تتغير)
   const renderUploadView = () => {
     const handleFileUpload = (e) => {
-      if (e.target.files[0]) {
-        const newFile = {
-          name: e.target.files[0].name,
-          date: new Date().toLocaleDateString("ar-MA"),
-        };
-        setUploadedFiles([...uploadedFiles, newFile]);
-      }
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (ev) => {
+        try {
+          const base64 = ev.target.result;
+          const added = await dataService.addFile({ name: file.name, data: base64, group: selectedGroup });
+          setUploadedFiles((prev) => [added, ...prev]);
+        } catch (err) {
+          console.error(err);
+          alert("فشل في رفع الملف");
+        }
+      };
+      reader.readAsDataURL(file);
     };
 
     return (

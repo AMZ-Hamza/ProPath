@@ -54,173 +54,428 @@ export const Dashboard = () => {
 
 // --- 2. صفحة الجدول الزمني ---
 export const Schedule = () => {
-  const groupNumber = "DEV-101"; // رقم الفوج
+  const [lessons, setLessons] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [lessonsData, groupsData] = await Promise.all([
+          dataService.fetchLessons(),
+          dataService.fetchGroups(),
+        ]);
+        setLessons(lessonsData || []);
+        setGroups(groupsData || []);
+        if (groupsData && groupsData.length > 0) {
+          setSelectedGroup(groupsData[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const groupLessons = lessons.filter((l) => l.groupId === selectedGroup) || [];
+
+  const downloadSchedule = () => {
+    try {
+      const text = `الجدول الزمني - ${groups.find((g) => g.id === selectedGroup)?.name || "بدون اسم"}\n\n`;
+      const csv = groupLessons.map((l) => `${l.date},${l.title}`).join("\n");
+      const element = document.createElement("a");
+      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text + csv));
+      element.setAttribute("download", "schedule.csv");
+      element.click();
+    } catch (err) {
+      alert("خطأ في تحميل الجدول");
+    }
+  };
 
   return (
     <div className="card schedule-container">
       <h2 className="page-title">الجدول الزمني</h2>
-      <div
-        style={{ fontSize: "1.2rem", fontWeight: "bold", marginBottom: "10px" }}
-      >
-        رقم الفوج: <span style={{ color: "#2563eb" }}>{groupNumber}</span>
+
+      <div className="form-group">
+        <label>اختر الفوج:</label>
+        <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
+          <option value="">-- اختر الفوج --</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* صورة وهمية للجدول */}
-      <img
-        src="https://via.placeholder.com/800x400.png?text=Weekly+Schedule+Image"
-        alt="الجدول الزمني"
-        className="schedule-img"
-      />
+      {loading ? (
+        <p>جاري التحميل...</p>
+      ) : groupLessons.length === 0 ? (
+        <p>لا توجد دروس لهذا الفوج</p>
+      ) : (
+        <>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>عنوان الدرس</th>
+                <th>الملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groupLessons.map((lesson) => (
+                <tr key={lesson.id}>
+                  <td>{lesson.date}</td>
+                  <td>{lesson.title}</td>
+                  <td>{lesson.notes || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-      <div>
-        <button
-          className="btn-primary"
-          onClick={() => alert("جاري تحميل الجدول...")}
-        >
-          <Download size={18} /> تحميل الجدول
-        </button>
-      </div>
+          <div style={{ marginTop: "20px" }}>
+            <button className="btn-primary" onClick={downloadSchedule}>
+              <Download size={18} /> تحميل الجدول
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };
 
 // --- 3. صفحة الموارد ---
 export const Resources = () => {
-  const [major, setMajor] = useState("");
-  const [year, setYear] = useState("");
+  const [groups, setGroups] = useState([]);
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [lessons, setLessons] = useState([]);
+  const [exercises, setExercises] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // بيانات وهمية للشعب والدروس
-  const data = {
-    dev: {
-      name: "التطوير الرقمي",
-      years: 2,
-      content: ["الخوارزميات", "React JS", "قواعد البيانات"],
-    },
-    infra: {
-      name: "البنية التحتية والشبكات",
-      years: 2,
-      content: ["Cisco", "Linux", "Security"],
-    },
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [groupsData, lessonsData, exercisesData] = await Promise.all([
+          dataService.fetchGroups(),
+          dataService.fetchLessons(),
+          dataService.fetchExercises(),
+        ]);
+        setGroups(groupsData || []);
+        setLessons(lessonsData || []);
+        setExercises(exercisesData || []);
+        if (groupsData && groupsData.length > 0) {
+          setSelectedGroup(groupsData[0].id);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const groupLessons = lessons.filter((l) => l.groupId === selectedGroup) || [];
+  const groupExercises = exercises.filter((e) => e.groupId === selectedGroup) || [];
 
   return (
     <div className="card">
       <h2 className="page-title">الموارد البيداغوجية</h2>
 
-      <div className="filters">
-        <select onChange={(e) => setMajor(e.target.value)} value={major}>
-          <option value="">-- اختر الشعبة --</option>
-          {Object.entries(data).map(([key, val]) => (
-            <option key={key} value={key}>
-              {val.name}
+      <div className="form-group">
+        <label>اختر الفوج:</label>
+        <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
+          <option value="">-- اختر الفوج --</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
             </option>
           ))}
         </select>
-
-        <select
-          onChange={(e) => setYear(e.target.value)}
-          value={year}
-          disabled={!major}
-        >
-          <option value="">-- اختر السنة الدراسية --</option>
-          {major &&
-            Array.from({ length: data[major].years }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                السنة {i + 1}
-              </option>
-            ))}
-        </select>
       </div>
 
-      {major && year && (
-        <div>
-          <h3>
-            دروس وتمارين: {data[major].name} - السنة {year}
-          </h3>
-          <ul style={{ listStyleType: "none", marginTop: "15px" }}>
-            {data[major].content.map((lesson, idx) => (
-              <li
-                key={idx}
-                style={{
-                  padding: "10px",
-                  background: "#f9fafb",
-                  margin: "5px 0",
-                  borderRadius: "5px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-              >
-                <FileText size={16} color="#2563eb" /> {lesson}
-              </li>
-            ))}
-          </ul>
-        </div>
+      {loading ? (
+        <p>جاري التحميل...</p>
+      ) : (
+        <>
+          <h3 style={{ marginTop: "20px" }}>الدروس</h3>
+          {groupLessons.length === 0 ? (
+            <p>لا توجد دروس</p>
+          ) : (
+            <ul style={{ listStyleType: "none", margin: "15px 0", padding: 0 }}>
+              {groupLessons.map((lesson) => (
+                <li
+                  key={lesson.id}
+                  style={{
+                    padding: "10px",
+                    background: "#f9fafb",
+                    margin: "5px 0",
+                    borderRadius: "5px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <FileText size={16} color="#2563eb" /> {lesson.title} ({lesson.date})
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <h3 style={{ marginTop: "20px" }}>التمارين</h3>
+          {groupExercises.length === 0 ? (
+            <p>لا توجد تمارين</p>
+          ) : (
+            <ul style={{ listStyleType: "none", margin: "15px 0", padding: 0 }}>
+              {groupExercises.map((exercise) => (
+                <li
+                  key={exercise.id}
+                  style={{
+                    padding: "10px",
+                    background: "#f9fafb",
+                    margin: "5px 0",
+                    borderRadius: "5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <FileText size={16} color="#2563eb" /> {exercise.title}
+                  </div>
+                  <small style={{ color: "#999" }}>الموعد النهائي: {exercise.due_date}</small>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </div>
   );
 };
 
 // --- 4. صفحة سجل الغياب ---
-export const Absence = () => {
+export const Absence = ({ user }) => {
   const [attendance, setAttendance] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSession, setSelectedSession] = useState("");
+
+  const SESSIONS = [
+    { id: "s1", label: "الحصة الأولى (08:30 - 11:00)" },
+    { id: "s2", label: "الحصة الثانية (11:00 - 13:30)" },
+    { id: "s3", label: "الحصة الثالثة (13:30 - 16:00)" },
+    { id: "s4", label: "الحصة الرابعة (16:00 - 18:30)" },
+  ];
+
+  const DAYS = [
+    { id: "2", label: "الثنين" },
+    { id: "3", label: "الثلاثاء" },
+    { id: "4", label: "الأربعاء" },
+    { id: "5", label: "الخميس" },
+    { id: "6", label: "الجمعة" },
+  ];
 
   useEffect(() => {
-    const fetchAttendanceData = async () => {
+    const fetchData = async () => {
       try {
-        const attendanceData = await dataService.fetchAttendances();
-        setAttendance(attendanceData);
+        const [attendanceData, studentsData] = await Promise.all([
+          dataService.fetchAttendances(),
+          dataService.fetchStudents(),
+        ]);
+        setAttendance(attendanceData || []);
+        setStudents(studentsData || []);
+
+        const today = new Date().toLocaleDateString("ar-MA");
+        setSelectedDate(today);
+        setSelectedSession("s1");
       } catch (err) {
-        console.error("Error fetching attendance:", err);
-        setError("فشل في جلب بيانات الحضور");
+        console.error("Error fetching data:", err);
+        setError("فشل في جلب البيانات");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAttendanceData();
+    fetchData();
   }, []);
+
+  const buildAttendanceTable = () => {
+    // Filter students: if user is a student, show only their data; if trainer/admin, show all
+    let filteredStudents = students;
+    if (user?.role === "متدرب" && user?.id) {
+      filteredStudents = students.filter(s => s.userId === user.id || s.id === user.id);
+    }
+
+    const uniqueDates = [...new Set(attendance.map(a => a.date))];
+    const sortedDates = uniqueDates.sort((a, b) => new Date(b) - new Date(a));
+
+    // Get all unique days of week
+    const dayHeaders = DAYS.map(day => day.label);
+    const sessionHeaders = SESSIONS.map(s => s.label);
+
+    // Build table: rows = students, columns = days + sessions
+    const tableData = filteredStudents.map(student => {
+      const studentAttendance = attendance.filter(a => a.studentId === student.id);
+      return {
+        student,
+        attendance: studentAttendance,
+      };
+    });
+
+    return { tableData, sessionHeaders, dayHeaders };
+  };
 
   if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
   if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
 
-  const Cell = ({ status }) => (
-    <td className={status === "absent" ? "absent-cell" : ""}>
-      {status === "present" ? "حاضر" : "غائب"}
-    </td>
-  );
+  const { tableData, sessionHeaders } = buildAttendanceTable();
+
+  // Get unique dates grouped by session and day
+  const uniqueDates = [...new Set(attendance.map(a => a.date))];
+  const getDayName = (dateStr) => {
+    try {
+      const date = new Date(dateStr);
+      const dayNum = date.getDay().toString();
+      return DAYS.find(d => d.id === dayNum)?.label || "غير معروف";
+    } catch {
+      return "غير معروف";
+    }
+  };
+
+  const sessionSlots = [
+    { id: "s1", time: "11:00 - 08:30" },
+    { id: "s2", time: "13:30 - 11:00" },
+    { id: "s3", time: "16:00 - 13:30" },
+    { id: "s4", time: "18:30 - 16:00" },
+  ];
 
   return (
     <div className="card">
       <h2 className="page-title">سجل الغياب</h2>
-      <div style={{ marginBottom: "10px", color: "#666" }}>
-        <AlertCircle size={14} style={{ display: "inline" }} /> الخلايا الحمراء
-        تشير إلى حصص الغياب
+      <div style={{ marginBottom: "20px", padding: "10px", background: "#eff6ff", borderLeft: "4px solid #3b82f6", borderRadius: "4px" }}>
+        <AlertCircle size={14} style={{ display: "inline", marginLeft: "8px" }} />
+        الخلايا باللون الوردي تشير إلى حالات الغياب
       </div>
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>التاريخ</th>
-            <th>الحصة</th>
-            <th>الحالة</th>
-          </tr>
-        </thead>
-        <tbody>
-          {attendance.length === 0 ? (
-            <tr><td colSpan="3">لا توجد بيانات حضور</td></tr>
-          ) : (
-            attendance.map((record) => (
-              <tr key={record.id}>
-                <td>{record.date}</td>
-                <td>{record.session}</td>
-                <Cell status={record.status} />
+
+      {tableData.length === 0 ? (
+        <p style={{ textAlign: "center", padding: "20px", color: "#666" }}>لا توجد بيانات طلاب</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            background: "#fff",
+            direction: "rtl",
+          }}>
+            <thead>
+              <tr style={{ background: "#f3f4f6", borderBottom: "2px solid #d1d5db" }}>
+                <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: "#1e293b", borderLeft: "1px solid #e5e7eb" }}>الاسم / التوقيت</th>
+                {sessionSlots.map(session => (
+                  <th key={session.id} style={{
+                    padding: "12px",
+                    textAlign: "center",
+                    fontWeight: "600",
+                    fontSize: "0.8rem",
+                    color: "#1e293b",
+                    borderLeft: "1px solid #e5e7eb"
+                  }}>
+                    {session.time}
+                  </th>
+                ))}
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+              <tr style={{ background: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                <th style={{ padding: "8px", textAlign: "right", fontSize: "0.75rem", color: "#6b7280", fontWeight: "500" }}></th>
+                {sessionSlots.map(session => (
+                  <th key={`label-${session.id}`} style={{
+                    padding: "8px",
+                    textAlign: "center",
+                    fontSize: "0.75rem",
+                    color: "#6b7280",
+                    fontWeight: "500",
+                  }}>
+                    {SESSIONS.find(s => s.id === session.id)?.label.split("(")[0].trim()}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tableData.map((row, idx) => (
+                <tr key={row.student.id} style={{
+                  borderBottom: "1px solid #e5e7eb",
+                  background: idx % 2 === 0 ? "#fff" : "#f9fafb"
+                }}>
+                  <td style={{
+                    padding: "12px",
+                    fontWeight: "500",
+                    color: "#1e293b",
+                    borderLeft: "1px solid #e5e7eb",
+                    minWidth: "150px"
+                  }}>
+                    {row.student.name}
+                  </td>
+                  {sessionSlots.map(session => {
+                    // Find latest attendance for this session (any date)
+                    const latestAttendance = row.attendance
+                      .filter(a => a.session === session.id)
+                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+                    const isAbsent = latestAttendance?.status === "absent";
+
+                    return (
+                      <td key={`${row.student.id}-${session.id}`} style={{
+                        padding: "12px",
+                        textAlign: "center",
+                        background: isAbsent ? "#fce7f3" : "transparent",
+                        color: isAbsent ? "#be185d" : "#16a34a",
+                        fontWeight: isAbsent ? "600" : "500",
+                        fontSize: "0.9rem",
+                        borderLeft: "1px solid #e5e7eb",
+                      }}>
+                        {isAbsent ? "غائب" : "حاضر"}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div style={{ marginTop: "20px", padding: "15px", background: "#f0fdf4", borderRadius: "6px" }}>
+        <h3 style={{ margin: "0 0 10px 0", color: "#166534" }}>📊 إحصائيات الحضور</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+          {tableData.map(row => {
+            const totalSessions = attendance.filter(a => a.studentId === row.student.id).length;
+            const absentCount = attendance.filter(a => a.studentId === row.student.id && a.status === "absent").length;
+            const percentage = totalSessions > 0 ? ((totalSessions - absentCount) / totalSessions * 100).toFixed(1) : 0;
+
+            return (
+              <div key={row.student.id} style={{
+                padding: "10px",
+                background: "#fff",
+                borderRadius: "4px",
+                borderRight: "4px solid " + (percentage >= 90 ? "#16a34a" : percentage >= 70 ? "#f59e0b" : "#dc2626"),
+              }}>
+                <div style={{ fontSize: "0.9rem", fontWeight: "500", color: "#1e293b" }}>{row.student.name}</div>
+                <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "4px" }}>
+                  نسبة الحضور: <strong style={{ color: percentage >= 90 ? "#16a34a" : percentage >= 70 ? "#f59e0b" : "#dc2626" }}>{percentage}%</strong>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };

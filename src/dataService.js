@@ -1,103 +1,129 @@
-// Data Service - Fetch all data from db.json
-const API_URL = "/db.json";
+// Data Service - use json-server backend when available (default http://localhost:4000)
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
-export const dataService = {
-    // Fetch all data
-    fetchAllData: async () => {
+async function tryJsonFetch(path, options = {}) {
+    const url = `${API_BASE}${path}`;
+    try {
+        const res = await fetch(url, options);
+        if (!res.ok) throw new Error(`Request failed ${res.status}`);
+        // for DELETE responses may be empty
+        const text = await res.text();
+        try { return text ? JSON.parse(text) : null; } catch { return text; }
+    } catch (err) {
+        console.warn("JSON API fetch failed:", url, err);
+        throw err;
+    }
+}
+
+const dataService = {
+    // Users
+    fetchUsers: async () => {
+        return await tryJsonFetch("/users");
+    },
+    addUser: async (user) => {
+        return await tryJsonFetch("/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(user) });
+    },
+    updateUser: async (id, updates) => {
+        return await tryJsonFetch(`/users/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates) });
+    },
+    deleteUser: async (id) => {
+        return await tryJsonFetch(`/users/${id}`, { method: "DELETE" });
+    },
+
+    // Students
+    fetchStudents: async () => {
+        return await tryJsonFetch("/students");
+    },
+    saveStudents: async (students) => {
+        // save each student by PUT (json-server expects full resource replacement for PUT)
+        await Promise.all(students.map(async (s) => {
+            if (s.id) {
+                await tryJsonFetch(`/students/${s.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(s) });
+            } else {
+                await tryJsonFetch(`/students`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(s) });
+            }
+        }));
+    },
+
+    // Subjects / groups
+    fetchSubjects: async () => {
+        return await tryJsonFetch("/subjects");
+    },
+    fetchGroups: async () => {
+        return await tryJsonFetch("/groups");
+    },
+    addGroup: async (group) => {
+        const payload = { ...group, id: Date.now().toString() };
+        return await tryJsonFetch("/groups", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    },
+    updateGroup: async (id, updates) => {
+        return await tryJsonFetch(`/groups/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates) });
+    },
+    deleteGroup: async (id) => {
+        return await tryJsonFetch(`/groups/${id}`, { method: "DELETE" });
+    },
+
+    // News
+    fetchNews: async () => {
+        // sort by id desc (json-server supports _sort and _order)
         try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error("Failed to fetch data");
-            return await response.json();
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            throw error;
+            return await tryJsonFetch(`/news?_sort=id&_order=desc`);
+        } catch (err) {
+            return [];
         }
     },
-
-    // Fetch specific data sections
-    fetchUsers: async () => {
-        const data = await dataService.fetchAllData();
-        return data.users;
+    addNews: async (newsItem) => {
+        const payload = { ...newsItem, date: new Date().toLocaleDateString("ar-MA") };
+        return await tryJsonFetch(`/news`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    },
+    updateNews: async (id, updates) => {
+        return await tryJsonFetch(`/news/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates) });
+    },
+    deleteNews: async (id) => {
+        return await tryJsonFetch(`/news/${id}`, { method: "DELETE" });
     },
 
-    fetchStudents: async () => {
-        const data = await dataService.fetchAllData();
-        return data.students;
-    },
-
-    fetchSubjects: async () => {
-        const data = await dataService.fetchAllData();
-        return data.subjects;
-    },
-
-    fetchGroups: async () => {
-        const data = await dataService.fetchAllData();
-        return data.groups;
-    },
-
-    fetchNews: async () => {
-        const data = await dataService.fetchAllData();
-        return data.news;
-    },
-
-    fetchLessons: async () => {
-        const data = await dataService.fetchAllData();
-        return data.lessons;
-    },
-
-    fetchExercises: async () => {
-        const data = await dataService.fetchAllData();
-        return data.exercises;
-    },
-
+    // Attendances
     fetchAttendances: async () => {
-        const data = await dataService.fetchAllData();
-        return data.attendances;
+        return await tryJsonFetch(`/attendances`);
+    },
+    addAttendances: async (records) => {
+        await Promise.all(records.map((r) => tryJsonFetch(`/attendances`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(r) })));
     },
 
-    fetchSettings: async () => {
-        const data = await dataService.fetchAllData();
-        return data.settings;
+    // Files
+    fetchFiles: async () => {
+        return await tryJsonFetch(`/files`);
+    },
+    addFile: async (file) => {
+        const payload = { name: file.name, data: file.data, date: new Date().toLocaleDateString("ar-MA"), group: file.group };
+        return await tryJsonFetch(`/files`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     },
 
-    // Get user by id
-    getUserById: async (id) => {
-        const users = await dataService.fetchUsers();
-        return users.find((u) => u.id === id);
+    // Lessons
+    fetchLessons: async () => {
+        return await tryJsonFetch("/lessons");
     },
-
-    // Get student by id
-    getStudentById: async (id) => {
-        const students = await dataService.fetchStudents();
-        return students.find((s) => s.id === id);
-    },
-
-    // Get subjects for a group
-    getSubjectsForGroup: async (groupId) => {
-        const data = await dataService.fetchAllData();
-        return data.subjects;
-    },
-
-    // Get students in a group
-    getStudentsInGroup: async (groupId) => {
-        const students = await dataService.fetchStudents();
-        return students.filter((s) => s.group === groupId);
-    },
-
-    // Get lessons for a subject and group
     getLessonsForSubjectAndGroup: async (subjectId, groupId) => {
-        const lessons = await dataService.fetchLessons();
-        return lessons.filter(
-            (l) => l.subjectId === subjectId && l.groupId === groupId
-        );
+        return await tryJsonFetch(`/lessons?subjectId=${subjectId}&groupId=${groupId}`);
     },
 
-    // Get exercises for a subject and group
+    // Exercises
+    fetchExercises: async () => {
+        return await tryJsonFetch("/exercises");
+    },
     getExercisesForSubjectAndGroup: async (subjectId, groupId) => {
-        const exercises = await dataService.fetchExercises();
-        return exercises.filter(
-            (e) => e.subjectId === subjectId && e.groupId === groupId
-        );
+        return await tryJsonFetch(`/exercises?subjectId=${subjectId}&groupId=${groupId}`);
+    },
+
+    // Student helpers
+    getStudentById: async (id) => {
+        return await tryJsonFetch(`/students/${id}`);
+    },
+
+    // Group helpers
+    getStudentsInGroup: async (groupId) => {
+        return await tryJsonFetch(`/students?group=${groupId}`);
     },
 };
 

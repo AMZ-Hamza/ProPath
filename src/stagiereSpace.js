@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <UserX size={20} /> سجل الغياب
         </Link>
         <Link
-          to="/grades"
+          to="/stagiere/grades"
           className={isActive("/stagiere/grades")}
           onClick={toggleSidebar}
         >
@@ -68,7 +68,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   );
 };
 
-function StagiereSpace() {
+function StagiereSpace({ user, onLogout }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
@@ -93,10 +93,10 @@ function StagiereSpace() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/schedule" element={<Schedule />} />
           <Route path="/resources" element={<Resources />} />
-          <Route path="/absence" element={<Absence />} />
+          <Route path="/absence" element={<Absence user={user} />} />
           <Route path="/grades" element={<Grades />} />
         </Routes>
-      
+
       </div>
     </div>
   );
