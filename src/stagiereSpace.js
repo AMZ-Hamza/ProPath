@@ -1,102 +1,70 @@
 import React, { useState } from "react";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
 import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  useLocation,
-} from "react-router-dom";
-import {
-  Menu,
-  X,
-  LayoutDashboard,
-  Calendar,
   BookOpen,
-  UserX,
+  Calendar,
   ClipboardList,
+  LayoutDashboard,
+  Menu,
+  UserX,
+  X,
 } from "lucide-react";
-import './stagiereSpace.css';
+import "./stagiereSpace.css";
+import { Absence, Dashboard, Grades, Resources, Schedule } from "./Components";
 
-// استيراد المكونات التي أنشأناها أعلاه (افترض أنها في نفس الملف أو مستوردة)
-import { Dashboard, Schedule, Resources, Absence, Grades } from "./Components";
-
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+function Sidebar({ isOpen, onNavigate }) {
   const location = useLocation();
   const isActive = (path) => (location.pathname === path ? "active" : "");
 
+  const items = [
+    { path: "/stagiere", label: "لوحة القيادة", icon: LayoutDashboard },
+    { path: "/stagiere/schedule", label: "الجدول الزمني", icon: Calendar },
+    { path: "/stagiere/resources", label: "الدروس", icon: BookOpen },
+    { path: "/stagiere/absence", label: "سجل الغياب", icon: UserX },
+    { path: "/stagiere/grades", label: "كشف النقط", icon: ClipboardList },
+  ];
+
   return (
-    <div className={`sidebar ${isOpen ? "open" : ""}`}>
+    <aside className={`sidebar ${isOpen ? "open" : ""}`}>
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <h2 style={{ color: "#2563eb" }}>ProPath</h2>
         <p style={{ color: "#666" }}>فضاء المتدرب</p>
       </div>
 
       <nav>
-        <Link to="/stagiere" className={isActive("/stagiere")} onClick={toggleSidebar}>
-          <LayoutDashboard size={20} /> لوحة القيادة
-        </Link>
-        <Link
-          to="/stagiere/schedule"
-          className={isActive("/stagiere/schedule")}
-          onClick={toggleSidebar}
-        >
-          <Calendar size={20} /> الجدول الزمني
-        </Link>
-        <Link
-          to="/stagiere/resources"
-          className={isActive("/stagiere/resources")}
-          onClick={toggleSidebar}
-        >
-          <BookOpen size={20} /> الموارد البيداغوجية
-        </Link>
-        <Link
-          to="/stagiere/absence"
-          className={isActive("/stagiere/absence")}
-          onClick={toggleSidebar}
-        >
-          <UserX size={20} /> سجل الغياب
-        </Link>
-        <Link
-          to="/stagiere/grades"
-          className={isActive("/stagiere/grades")}
-          onClick={toggleSidebar}
-        >
-          <ClipboardList size={20} /> كشف النقط
-        </Link>
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.path} to={item.path} className={isActive(item.path)} onClick={onNavigate}>
+              <Icon size={20} />
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
-    </div>
+    </aside>
   );
-};
+}
 
-function StagiereSpace({ user, onLogout }) {
+function StagiereSpace({ user }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-
-  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   return (
     <div className="app-container">
-      {/* زر القائمة - يظهر دائماً */}
-      <div className="menu-icon" onClick={toggleSidebar}>
+      <button type="button" className="menu-icon" onClick={() => setSidebarOpen((value) => !value)}>
         {isSidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </div>
+      </button>
 
-      {/* القائمة الجانبية */}
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar isOpen={isSidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
-      {/* المحتوى الرئيسي */}
-      <div
-        className="main-content"
-        onClick={() => isSidebarOpen && setSidebarOpen(false)}
-      >
-
+      <div className="stagiere-main-content" onClick={() => isSidebarOpen && setSidebarOpen(false)}>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/schedule" element={<Schedule />} />
-          <Route path="/resources" element={<Resources />} />
+          <Route path="/" element={<Dashboard user={user} />} />
+          <Route path="/schedule" element={<Schedule user={user} />} />
+          <Route path="/resources" element={<Resources user={user} />} />
           <Route path="/absence" element={<Absence user={user} />} />
-          <Route path="/grades" element={<Grades />} />
+          <Route path="/grades" element={<Grades user={user} />} />
         </Routes>
-
       </div>
     </div>
   );

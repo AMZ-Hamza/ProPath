@@ -1,447 +1,447 @@
-import React, { useState, useEffect } from "react";
-import { Download, FileText, AlertCircle } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  Calendar,
+  Download,
+  ExternalLink,
+  FileText,
+  Newspaper,
+  UserX,
+} from "lucide-react";
 import dataService from "./dataService";
 
-// --- 1. صفحة لوحة القيادة ---
-export const Dashboard = () => {
+const DEFAULT_SLOTS = [
+  { id: "s1", label: "08:30 - 11:00" },
+  { id: "s2", label: "11:00 - 13:30" },
+  { id: "s3", label: "13:30 - 16:00" },
+  { id: "s4", label: "16:00 - 18:30" },
+];
+
+function formatDisplayDate(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("ar-MA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
+function getLessonFileUrl(lesson) {
+  if (lesson.file?.data) return lesson.file.data;
+  if (lesson.file?.url) return lesson.file.url;
+  if (lesson.resources?.[0]?.url) return lesson.resources[0].url;
+  return "";
+}
+
+function getLessonFileName(lesson) {
+  return lesson.file?.name || lesson.resources?.[0]?.name || `${lesson.title}.pdf`;
+}
+
+function StatCard({ icon: Icon, label, value }) {
+  return (
+    <div
+      style={{
+        padding: "16px",
+        borderRadius: "12px",
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        display: "flex",
+        alignItems: "center",
+        gap: "14px",
+      }}
+    >
+      <div
+        style={{
+          width: "46px",
+          height: "46px",
+          borderRadius: "12px",
+          display: "grid",
+          placeItems: "center",
+          background: "#dbeafe",
+          color: "#1d4ed8",
+        }}
+      >
+        <Icon size={20} />
+      </div>
+      <div>
+        <div style={{ fontSize: "0.9rem", color: "#64748b" }}>{label}</div>
+        <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#0f172a" }}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+export function Dashboard({ user }) {
   const [news, setNews] = useState([]);
+  const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const loadDashboard = async () => {
       try {
-        const newsData = await dataService.fetchNews();
-        setNews(newsData);
-      } catch (err) {
-        console.error("Error fetching news:", err);
-        setError("فشل في جلب الأخبار");
+        setLoading(true);
+        const [newsItems, studentRecord] = await Promise.all([
+          dataService.fetchNewsForAudience("students"),
+          dataService.getStudentRecordForUser(user),
+        ]);
+        setNews(newsItems.slice(0, 5));
+        setStudent(studentRecord);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("تعذر تحميل لوحة المتدرب");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchNews();
-  }, []);
+    loadDashboard();
+  }, [user]);
 
   if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
-  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
+  if (error) return <div className="card"><p style={{ color: "#dc2626" }}>{error}</p></div>;
 
   return (
     <div className="card">
-      <h2 className="page-title">لوحة القيادة - آخر الأخبار</h2>
-      {news.length === 0 ? (
-        <p>لا توجد أخبار حالياً</p>
-      ) : (
-        news.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              marginBottom: "20px",
-              borderBottom: "1px solid #eee",
-              paddingBottom: "10px",
-            }}
-          >
-            <h3 style={{ color: "#2563eb" }}>{item.title}</h3>
-            <small style={{ color: "#6b7280" }}>{item.date}</small>
-            <p style={{ marginTop: "5px" }}>{item.content}</p>
-          </div>
-        ))
-      )}
+      <h2 className="page-title">لوحة القيادة</h2>
+
+      <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+        <StatCard icon={Calendar} label="الفوج" value={student?.group || "-"} />
+        <StatCard icon={FileText} label="المواد المسجلة" value={(student?.enrolled_subjects || []).length} />
+        <StatCard icon={Newspaper} label="الإعلانات الحديثة" value={news.length} />
+      </div>
+
+      <div style={{ marginTop: "24px" }}>
+        <h3 style={{ marginBottom: "12px", color: "#1e3a8a" }}>آخر الأخبار</h3>
+        {news.length === 0 ? (
+          <p style={{ color: "#64748b" }}>لا توجد إعلانات موجهة للمتدربين حالياً.</p>
+        ) : (
+          news.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                padding: "16px",
+                borderRadius: "12px",
+                border: "1px solid #e2e8f0",
+                marginBottom: "12px",
+                background: "#fff",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                <h4 style={{ margin: 0, color: "#1d4ed8" }}>{item.title}</h4>
+                <span style={{ color: "#64748b", fontSize: "0.9rem" }}>{formatDisplayDate(item.date)}</span>
+              </div>
+              <p style={{ margin: "10px 0 0", color: "#334155" }}>{item.content}</p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
-};
+}
 
-// --- 2. صفحة الجدول الزمني ---
-export const Schedule = () => {
-  const [lessons, setLessons] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState("");
-  const [loading, setLoading] = useState(false);
+export function Schedule({ user }) {
+  const [student, setStudent] = useState(null);
+  const [timetable, setTimetable] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadSchedule = async () => {
       try {
         setLoading(true);
-        const [lessonsData, groupsData] = await Promise.all([
-          dataService.fetchLessons(),
-          dataService.fetchGroups(),
-        ]);
-        setLessons(lessonsData || []);
-        setGroups(groupsData || []);
-        if (groupsData && groupsData.length > 0) {
-          setSelectedGroup(groupsData[0].id);
+        const studentRecord = await dataService.getStudentRecordForUser(user);
+        setStudent(studentRecord);
+
+        if (!studentRecord?.group) {
+          setTimetable(null);
+          return;
         }
-      } catch (err) {
-        console.error("Error fetching data:", err);
+
+        const timetables = await dataService.fetchTimetables();
+        const latest = timetables.find(
+          (item) => item.type === "student" && String(item.targetId) === String(studentRecord.group),
+        );
+        setTimetable(latest || null);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("تعذر تحميل الجدول الزمني");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadSchedule();
+  }, [user]);
 
-  const groupLessons = lessons.filter((l) => l.groupId === selectedGroup) || [];
-
-  const downloadSchedule = () => {
-    try {
-      const text = `الجدول الزمني - ${groups.find((g) => g.id === selectedGroup)?.name || "بدون اسم"}\n\n`;
-      const csv = groupLessons.map((l) => `${l.date},${l.title}`).join("\n");
-      const element = document.createElement("a");
-      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text + csv));
-      element.setAttribute("download", "schedule.csv");
-      element.click();
-    } catch (err) {
-      alert("خطأ في تحميل الجدول");
-    }
-  };
+  if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
+  if (error) return <div className="card"><p style={{ color: "#dc2626" }}>{error}</p></div>;
 
   return (
     <div className="card schedule-container">
       <h2 className="page-title">الجدول الزمني</h2>
+      <p style={{ color: "#64748b", marginBottom: "16px" }}>
+        {student?.group ? `الفوج الحالي: ${student.group}` : "لم يتم ربط المتدرب بفوج بعد."}
+      </p>
 
-      <div className="form-group">
-        <label>اختر الفوج:</label>
-        <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-          <option value="">-- اختر الفوج --</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <p>جاري التحميل...</p>
-      ) : groupLessons.length === 0 ? (
-        <p>لا توجد دروس لهذا الفوج</p>
+      {!timetable ? (
+        <div style={{ padding: "30px", border: "1px dashed #cbd5e1", borderRadius: "12px", color: "#64748b" }}>
+          لا توجد صورة جدول مرفوعة لهذا الفوج حالياً.
+        </div>
       ) : (
         <>
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>التاريخ</th>
-                <th>عنوان الدرس</th>
-                <th>الملاحظات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupLessons.map((lesson) => (
-                <tr key={lesson.id}>
-                  <td>{lesson.date}</td>
-                  <td>{lesson.title}</td>
-                  <td>{lesson.notes || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div style={{ marginTop: "20px" }}>
-            <button className="btn-primary" onClick={downloadSchedule}>
-              <Download size={18} /> تحميل الجدول
-            </button>
+          <img
+            className="schedule-img"
+            src={timetable.fileData}
+            alt={`جدول ${student?.group || ""}`}
+          />
+          <div style={{ color: "#64748b", marginTop: "10px" }}>
+            آخر تحديث: {formatDisplayDate(timetable.uploadedAt)}
+          </div>
+          <div style={{ marginTop: "16px" }}>
+            <a className="btn-primary" href={timetable.fileData} download={timetable.fileName || "schedule-image"}>
+              <Download size={18} />
+              تحميل الصورة
+            </a>
           </div>
         </>
       )}
     </div>
   );
-};
+}
 
-// --- 3. صفحة الموارد ---
-export const Resources = () => {
-  const [groups, setGroups] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState("");
+export function Resources({ user }) {
+  const [student, setStudent] = useState(null);
   const [lessons, setLessons] = useState([]);
-  const [exercises, setExercises] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadResources = async () => {
       try {
         setLoading(true);
-        const [groupsData, lessonsData, exercisesData] = await Promise.all([
-          dataService.fetchGroups(),
+        const [studentRecord, allLessons, allSubjects] = await Promise.all([
+          dataService.getStudentRecordForUser(user),
           dataService.fetchLessons(),
-          dataService.fetchExercises(),
+          dataService.fetchSubjects(),
         ]);
-        setGroups(groupsData || []);
-        setLessons(lessonsData || []);
-        setExercises(exercisesData || []);
-        if (groupsData && groupsData.length > 0) {
-          setSelectedGroup(groupsData[0].id);
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
+
+        setStudent(studentRecord);
+        setSubjects(allSubjects || []);
+
+        const groupLessons = (allLessons || []).filter(
+          (lesson) => String(lesson.groupId) === String(studentRecord?.group),
+        );
+        setLessons(groupLessons);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("تعذر تحميل الدروس");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadResources();
+  }, [user]);
 
-  const groupLessons = lessons.filter((l) => l.groupId === selectedGroup) || [];
-  const groupExercises = exercises.filter((e) => e.groupId === selectedGroup) || [];
+  const subjectMap = useMemo(
+    () =>
+      Object.fromEntries(
+        (subjects || []).map((subject) => [String(subject.id), subject.name]),
+      ),
+    [subjects],
+  );
+
+  if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
+  if (error) return <div className="card"><p style={{ color: "#dc2626" }}>{error}</p></div>;
 
   return (
     <div className="card">
-      <h2 className="page-title">الموارد البيداغوجية</h2>
+      <h2 className="page-title">الدروس والملفات</h2>
+      <p style={{ color: "#64748b", marginBottom: "16px" }}>
+        يتم عرض ملفات PDF الخاصة بفوجك: {student?.group || "-"}
+      </p>
 
-      <div className="form-group">
-        <label>اختر الفوج:</label>
-        <select value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)}>
-          <option value="">-- اختر الفوج --</option>
-          {groups.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {loading ? (
-        <p>جاري التحميل...</p>
+      {lessons.length === 0 ? (
+        <p style={{ color: "#64748b" }}>لا توجد ملفات PDF مرفوعة لهذا الفوج حالياً.</p>
       ) : (
-        <>
-          <h3 style={{ marginTop: "20px" }}>الدروس</h3>
-          {groupLessons.length === 0 ? (
-            <p>لا توجد دروس</p>
-          ) : (
-            <ul style={{ listStyleType: "none", margin: "15px 0", padding: 0 }}>
-              {groupLessons.map((lesson) => (
-                <li
-                  key={lesson.id}
-                  style={{
-                    padding: "10px",
-                    background: "#f9fafb",
-                    margin: "5px 0",
-                    borderRadius: "5px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  <FileText size={16} color="#2563eb" /> {lesson.title} ({lesson.date})
-                </li>
-              ))}
-            </ul>
-          )}
+        <div style={{ display: "grid", gap: "12px" }}>
+          {lessons.map((lesson) => {
+            const fileUrl = getLessonFileUrl(lesson);
+            const fileName = getLessonFileName(lesson);
 
-          <h3 style={{ marginTop: "20px" }}>التمارين</h3>
-          {groupExercises.length === 0 ? (
-            <p>لا توجد تمارين</p>
-          ) : (
-            <ul style={{ listStyleType: "none", margin: "15px 0", padding: 0 }}>
-              {groupExercises.map((exercise) => (
-                <li
-                  key={exercise.id}
-                  style={{
-                    padding: "10px",
-                    background: "#f9fafb",
-                    margin: "5px 0",
-                    borderRadius: "5px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <FileText size={16} color="#2563eb" /> {exercise.title}
+            return (
+              <div
+                key={lesson.id}
+                style={{
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  background: "#fff",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                  <div>
+                    <h3 style={{ margin: 0, color: "#0f172a" }}>{lesson.title}</h3>
+                    <div style={{ color: "#64748b", marginTop: "6px", fontSize: "0.95rem" }}>
+                      {subjectMap[String(lesson.subjectId)] || "بدون مادة"} | {formatDisplayDate(lesson.date)}
+                    </div>
                   </div>
-                  <small style={{ color: "#999" }}>الموعد النهائي: {exercise.due_date}</small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
+                  <span
+                    style={{
+                      alignSelf: "flex-start",
+                      padding: "6px 10px",
+                      borderRadius: "999px",
+                      background: "#eff6ff",
+                      color: "#1d4ed8",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    PDF
+                  </span>
+                </div>
+
+                {lesson.notes ? (
+                  <p style={{ margin: "12px 0", color: "#334155" }}>{lesson.notes}</p>
+                ) : null}
+
+                {fileUrl ? (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <a className="btn-primary" href={fileUrl} target="_blank" rel="noreferrer">
+                      <ExternalLink size={18} />
+                      فتح الملف
+                    </a>
+                    <a
+                      href={fileUrl}
+                      download={fileName}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 18px",
+                        borderRadius: "8px",
+                        border: "1px solid #cbd5e1",
+                        color: "#0f172a",
+                        textDecoration: "none",
+                      }}
+                    >
+                      <Download size={18} />
+                      تحميل الملف
+                    </a>
+                  </div>
+                ) : (
+                  <p style={{ color: "#dc2626" }}>هذا الدرس لا يحتوي على ملف قابل للعرض.</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
-};
+}
 
-// --- 4. صفحة سجل الغياب ---
-export const Absence = ({ user }) => {
-  const [attendance, setAttendance] = useState([]);
-  const [students, setStudents] = useState([]);
+export function Absence({ user }) {
+  const [student, setStudent] = useState(null);
+  const [records, setRecords] = useState([]);
+  const [timeSlots, setTimeSlots] = useState(DEFAULT_SLOTS);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSession, setSelectedSession] = useState("");
-
-  const SESSIONS = [
-    { id: "s1", label: "الحصة الأولى (08:30 - 11:00)" },
-    { id: "s2", label: "الحصة الثانية (11:00 - 13:30)" },
-    { id: "s3", label: "الحصة الثالثة (13:30 - 16:00)" },
-    { id: "s4", label: "الحصة الرابعة (16:00 - 18:30)" },
-  ];
-
-  const DAYS = [
-    { id: "2", label: "الثنين" },
-    { id: "3", label: "الثلاثاء" },
-    { id: "4", label: "الأربعاء" },
-    { id: "5", label: "الخميس" },
-    { id: "6", label: "الجمعة" },
-  ];
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadAbsences = async () => {
       try {
-        const [attendanceData, studentsData] = await Promise.all([
+        setLoading(true);
+        const [studentRecord, attendance, slots] = await Promise.all([
+          dataService.getStudentRecordForUser(user),
           dataService.fetchAttendances(),
-          dataService.fetchStudents(),
+          dataService.fetchTimeSlots(),
         ]);
-        setAttendance(attendanceData || []);
-        setStudents(studentsData || []);
 
-        const today = new Date().toLocaleDateString("ar-MA");
-        setSelectedDate(today);
-        setSelectedSession("s1");
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("فشل في جلب البيانات");
+        setStudent(studentRecord);
+        setTimeSlots((slots || []).length > 0 ? slots : DEFAULT_SLOTS);
+        const studentRecords = (attendance || [])
+          .filter((item) => String(item.studentId) === String(studentRecord?.id))
+          .sort((left, right) => new Date(right.date) - new Date(left.date));
+        setRecords(studentRecords);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("تعذر تحميل سجل الغياب");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadAbsences();
+  }, [user]);
 
-  const buildAttendanceTable = () => {
-    // Filter students: if user is a student, show only their data; if trainer/admin, show all
-    let filteredStudents = students;
-    if (user?.role === "متدرب" && user?.id) {
-      filteredStudents = students.filter(s => s.userId === user.id || s.id === user.id);
-    }
+  const tableRows = useMemo(() => {
+    const grouped = new Map();
 
-    const uniqueDates = [...new Set(attendance.map(a => a.date))];
-    const sortedDates = uniqueDates.sort((a, b) => new Date(b) - new Date(a));
-
-    // Get all unique days of week
-    const dayHeaders = DAYS.map(day => day.label);
-    const sessionHeaders = SESSIONS.map(s => s.label);
-
-    // Build table: rows = students, columns = days + sessions
-    const tableData = filteredStudents.map(student => {
-      const studentAttendance = attendance.filter(a => a.studentId === student.id);
-      return {
-        student,
-        attendance: studentAttendance,
-      };
+    records.forEach((record) => {
+      const dayKey = record.date || "unknown";
+      if (!grouped.has(dayKey)) {
+        grouped.set(dayKey, { date: dayKey, sessions: {} });
+      }
+      grouped.get(dayKey).sessions[record.session] = record.status;
     });
 
-    return { tableData, sessionHeaders, dayHeaders };
-  };
+    return [...grouped.values()].sort((left, right) => new Date(right.date) - new Date(left.date));
+  }, [records]);
+
+  const absentCount = records.filter((record) => record.status === "absent").length;
 
   if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
-  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
-
-  const { tableData, sessionHeaders } = buildAttendanceTable();
-
-  // Get unique dates grouped by session and day
-  const uniqueDates = [...new Set(attendance.map(a => a.date))];
-  const getDayName = (dateStr) => {
-    try {
-      const date = new Date(dateStr);
-      const dayNum = date.getDay().toString();
-      return DAYS.find(d => d.id === dayNum)?.label || "غير معروف";
-    } catch {
-      return "غير معروف";
-    }
-  };
-
-  const sessionSlots = [
-    { id: "s1", time: "11:00 - 08:30" },
-    { id: "s2", time: "13:30 - 11:00" },
-    { id: "s3", time: "16:00 - 13:30" },
-    { id: "s4", time: "18:30 - 16:00" },
-  ];
+  if (error) return <div className="card"><p style={{ color: "#dc2626" }}>{error}</p></div>;
 
   return (
     <div className="card">
       <h2 className="page-title">سجل الغياب</h2>
-      <div style={{ marginBottom: "20px", padding: "10px", background: "#eff6ff", borderLeft: "4px solid #3b82f6", borderRadius: "4px" }}>
-        <AlertCircle size={14} style={{ display: "inline", marginLeft: "8px" }} />
-        الخلايا باللون الوردي تشير إلى حالات الغياب
+
+      <div style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: "20px" }}>
+        <StatCard icon={UserX} label="عدد الغيابات" value={absentCount} />
+        <StatCard icon={Calendar} label="عدد الأيام المسجلة" value={tableRows.length} />
       </div>
 
-      {tableData.length === 0 ? (
-        <p style={{ textAlign: "center", padding: "20px", color: "#666" }}>لا توجد بيانات طلاب</p>
+      <div style={{ marginBottom: "16px", padding: "12px 14px", borderRadius: "10px", background: "#eff6ff", color: "#1e40af" }}>
+        <AlertCircle size={16} style={{ verticalAlign: "middle", marginLeft: "8px" }} />
+        الخانات الحمراء تمثل حالات الغياب داخل الفترات الزمنية المحددة.
+      </div>
+
+      {student?.group ? (
+        <p style={{ color: "#64748b", marginBottom: "14px" }}>الفوج: {student.group}</p>
+      ) : null}
+
+      {tableRows.length === 0 ? (
+        <p style={{ color: "#64748b" }}>لا توجد بيانات غياب مسجلة لهذا المتدرب.</p>
       ) : (
         <div style={{ overflowX: "auto" }}>
-          <table style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            background: "#fff",
-            direction: "rtl",
-          }}>
+          <table className="data-table">
             <thead>
-              <tr style={{ background: "#f3f4f6", borderBottom: "2px solid #d1d5db" }}>
-                <th style={{ padding: "12px", textAlign: "right", fontWeight: "600", color: "#1e293b", borderLeft: "1px solid #e5e7eb" }}>الاسم / التوقيت</th>
-                {sessionSlots.map(session => (
-                  <th key={session.id} style={{
-                    padding: "12px",
-                    textAlign: "center",
-                    fontWeight: "600",
-                    fontSize: "0.8rem",
-                    color: "#1e293b",
-                    borderLeft: "1px solid #e5e7eb"
-                  }}>
-                    {session.time}
-                  </th>
-                ))}
-              </tr>
-              <tr style={{ background: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
-                <th style={{ padding: "8px", textAlign: "right", fontSize: "0.75rem", color: "#6b7280", fontWeight: "500" }}></th>
-                {sessionSlots.map(session => (
-                  <th key={`label-${session.id}`} style={{
-                    padding: "8px",
-                    textAlign: "center",
-                    fontSize: "0.75rem",
-                    color: "#6b7280",
-                    fontWeight: "500",
-                  }}>
-                    {SESSIONS.find(s => s.id === session.id)?.label.split("(")[0].trim()}
-                  </th>
+              <tr>
+                <th>التاريخ</th>
+                {timeSlots.map((slot) => (
+                  <th key={slot.id}>{slot.label}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {tableData.map((row, idx) => (
-                <tr key={row.student.id} style={{
-                  borderBottom: "1px solid #e5e7eb",
-                  background: idx % 2 === 0 ? "#fff" : "#f9fafb"
-                }}>
-                  <td style={{
-                    padding: "12px",
-                    fontWeight: "500",
-                    color: "#1e293b",
-                    borderLeft: "1px solid #e5e7eb",
-                    minWidth: "150px"
-                  }}>
-                    {row.student.name}
-                  </td>
-                  {sessionSlots.map(session => {
-                    // Find latest attendance for this session (any date)
-                    const latestAttendance = row.attendance
-                      .filter(a => a.session === session.id)
-                      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-                    const isAbsent = latestAttendance?.status === "absent";
+              {tableRows.map((row) => (
+                <tr key={row.date}>
+                  <td>{formatDisplayDate(row.date)}</td>
+                  {timeSlots.map((slot) => {
+                    const status = row.sessions[slot.id];
+                    const isAbsent = status === "absent";
 
                     return (
-                      <td key={`${row.student.id}-${session.id}`} style={{
-                        padding: "12px",
-                        textAlign: "center",
-                        background: isAbsent ? "#fce7f3" : "transparent",
-                        color: isAbsent ? "#be185d" : "#16a34a",
-                        fontWeight: isAbsent ? "600" : "500",
-                        fontSize: "0.9rem",
-                        borderLeft: "1px solid #e5e7eb",
-                      }}>
-                        {isAbsent ? "غائب" : "حاضر"}
+                      <td key={`${row.date}-${slot.id}`} className={isAbsent ? "absent-cell" : ""}>
+                        {status === "present" ? "حاضر" : isAbsent ? "غائب" : "-"}
                       </td>
                     );
                   })}
@@ -451,100 +451,100 @@ export const Absence = ({ user }) => {
           </table>
         </div>
       )}
-
-      <div style={{ marginTop: "20px", padding: "15px", background: "#f0fdf4", borderRadius: "6px" }}>
-        <h3 style={{ margin: "0 0 10px 0", color: "#166534" }}>📊 إحصائيات الحضور</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
-          {tableData.map(row => {
-            const totalSessions = attendance.filter(a => a.studentId === row.student.id).length;
-            const absentCount = attendance.filter(a => a.studentId === row.student.id && a.status === "absent").length;
-            const percentage = totalSessions > 0 ? ((totalSessions - absentCount) / totalSessions * 100).toFixed(1) : 0;
-
-            return (
-              <div key={row.student.id} style={{
-                padding: "10px",
-                background: "#fff",
-                borderRadius: "4px",
-                borderRight: "4px solid " + (percentage >= 90 ? "#16a34a" : percentage >= 70 ? "#f59e0b" : "#dc2626"),
-              }}>
-                <div style={{ fontSize: "0.9rem", fontWeight: "500", color: "#1e293b" }}>{row.student.name}</div>
-                <div style={{ fontSize: "0.8rem", color: "#64748b", marginTop: "4px" }}>
-                  نسبة الحضور: <strong style={{ color: percentage >= 90 ? "#16a34a" : percentage >= 70 ? "#f59e0b" : "#dc2626" }}>{percentage}%</strong>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
-};
+}
 
-// --- 5. صفحة كشف النقط ---
-export const Grades = () => {
+export function Grades({ user }) {
+  const [student, setStudent] = useState(null);
   const [subjects, setSubjects] = useState([]);
-  const [studentGrades, setStudentGrades] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchGradesData = async () => {
+    const loadGrades = async () => {
       try {
-        // Get the first student as example (you can make this dynamic)
-        const students = await dataService.fetchStudents();
-        const subjects = await dataService.fetchSubjects();
-
-        if (students.length > 0) {
-          setStudentGrades(students[0].grades || {});
-        }
-        setSubjects(subjects);
-      } catch (err) {
-        console.error("Error fetching grades:", err);
-        setError("فشل في جلب النقط");
+        setLoading(true);
+        const [studentRecord, subjectsData] = await Promise.all([
+          dataService.getStudentRecordForUser(user),
+          dataService.fetchSubjects(),
+        ]);
+        setStudent(studentRecord);
+        setSubjects(subjectsData || []);
+      } catch (loadError) {
+        console.error(loadError);
+        setError("تعذر تحميل كشف النقط");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchGradesData();
-  }, []);
+    loadGrades();
+  }, [user]);
+
+  const rows = useMemo(() => {
+    const gradeMap = student?.grades || {};
+    const subjectIds = student?.enrolled_subjects?.length
+      ? student.enrolled_subjects
+      : Object.keys(gradeMap);
+
+    return subjectIds.map((subjectId) => {
+      const subject = subjects.find((item) => String(item.id) === String(subjectId));
+      const normalized = dataService.normalizeGradeRecord(gradeMap[subjectId] || {});
+
+      return {
+        id: subjectId,
+        subjectName: subject?.name || subjectId,
+        ...normalized,
+      };
+    });
+  }, [student, subjects]);
 
   if (loading) return <div className="card"><p>جاري التحميل...</p></div>;
-  if (error) return <div className="card"><p style={{ color: "red" }}>{error}</p></div>;
+  if (error) return <div className="card"><p style={{ color: "#dc2626" }}>{error}</p></div>;
 
   return (
     <div className="card">
       <h2 className="page-title">كشف النقط</h2>
+      <p style={{ color: "#64748b", marginBottom: "16px" }}>
+        يتم احتساب النقطة النهائية تلقائياً وفق الصيغة: (EFM × 0.75) + 0.25 × ((C1 + C2 + C3) / 3)
+      </p>
+
       <table className="data-table">
         <thead>
           <tr>
             <th rowSpan="2">المادة</th>
             <th colSpan="3">المراقبة المستمرة</th>
-            <th rowSpan="2">الامتحان النهائي (EFM)</th>
-            <th rowSpan="2">النقطة النهائية</th>
+            <th rowSpan="2">EFM</th>
+            <th rowSpan="2">المعدل النهائي</th>
           </tr>
           <tr>
-            <th>CC1</th>
-            <th>CC2</th>
-            <th>CC3</th>
+            <th>C1</th>
+            <th>C2</th>
+            <th>C3</th>
           </tr>
         </thead>
         <tbody>
-          {subjects.map((subj) => {
-            const grades = studentGrades[subj.id] || { cc1: "-", cc2: "-", cc3: "-", efm: "-", final: "-" };
-            return (
-              <tr key={subj.id}>
-                <td style={{ textAlign: "right" }}>{subj.name}</td>
-                <td>{grades.cc1 || "-"}</td>
-                <td>{grades.cc2 || "-"}</td>
-                <td>{grades.cc3 || "-"}</td>
-                <td>{grades.efm || "-"}</td>
-                <td>{grades.final || "-"}</td>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan="6" style={{ color: "#64748b" }}>
+                لا توجد نقط متاحة حالياً.
+              </td>
+            </tr>
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id}>
+                <td style={{ textAlign: "right" }}>{row.subjectName}</td>
+                <td>{row.cc1 === "" ? "-" : row.cc1}</td>
+                <td>{row.cc2 === "" ? "-" : row.cc2}</td>
+                <td>{row.cc3 === "" ? "-" : row.cc3}</td>
+                <td>{row.efm === "" ? "-" : row.efm}</td>
+                <td>{row.final == null ? "-" : row.final}</td>
               </tr>
-            );
-          })}
+            ))
+          )}
         </tbody>
       </table>
     </div>
   );
-};
+}

@@ -1,0 +1,371 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+3 0 obj
+<< /Length 5070 >>
+stream
+BT
+/F2 20 Tf
+0.07 0.16 0.33 rg
+1 0 0 1 44 752 Tm
+(ProPath App Summary) Tj
+ET
+BT
+/F1 9 Tf
+0.35 0.35 0.35 rg
+1 0 0 1 44 730 Tm
+(Evidence source: React app in /src, seeded data in /public/db.json, and CRA/package scripts in) Tj
+ET
+BT
+/F1 9 Tf
+0.35 0.35 0.35 rg
+1 0 0 1 44 719 Tm
+(package.json + README.) Tj
+ET
+BT
+/F2 13 Tf
+0.09 0.24 0.53 rg
+1 0 0 1 44 700 Tm
+(What It Is) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 44 682 Tm
+(ProPath is a role-based training management web app with separate spaces for administrators,) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 44 669 Tm
+(trainers, and trainees. It handles login, cohort and timetable management, announcements,) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 44 656 Tm
+(lesson distribution, attendance, and grade tracking in a single React SPA.) Tj
+ET
+BT
+/F2 13 Tf
+0.09 0.24 0.53 rg
+1 0 0 1 44 639 Tm
+(Who It's For) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 44 621 Tm
+(Primary persona: a training-center administrator coordinating users, cohorts, announcements,) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 44 608 Tm
+(schedules, and reporting, with dedicated trainer and trainee workflows in the same app.) Tj
+ET
+BT
+/F2 13 Tf
+0.09 0.24 0.53 rg
+1 0 0 1 44 591 Tm
+(What It Does) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 573 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 573 Tm
+(Authenticates users and routes them to admin, trainer, or trainee views based on) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 561 Tm
+(stored role data.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 549 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 549 Tm
+(Lets admins create, edit, filter, and delete platform users.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 537 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 537 Tm
+(Shows training structure through subjects, groups, and learner counts by group.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 525 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 525 Tm
+(Publishes targeted announcements for all users, trainees, or trainers.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 513 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 513 Tm
+(Uploads and displays timetable images for groups and individual trainers.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 501 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 501 Tm
+(Lets trainers record attendance and enter grades with automatic final-grade) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 489 Tm
+(calculation.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 477 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 477 Tm
+(Lets trainers upload lesson PDFs, and lets trainees view/download lessons,) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 465 Tm
+(schedules, absences, and grades.) Tj
+ET
+BT
+/F2 13 Tf
+0.09 0.24 0.53 rg
+1 0 0 1 44 449 Tm
+(How It Works) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 431 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 431 Tm
+(UI: React 19 single-page app bootstrapped with Create React App; BrowserRouter in) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 419 Tm
+(App.js controls login and role-based routes.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 407 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 407 Tm
+(Role screens: AdministrationSpace.js, TrainerSpace.js, and stagiereSpace.js +) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 395 Tm
+(Components.js implement the main workflows.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 383 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 383 Tm
+(Data layer: dataService.js centralizes CRUD, grade helpers, sorting, and audience) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 371 Tm
+(filtering.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 359 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 359 Tm
+(Flow: UI calls dataService -> tries HTTP API at REACT_APP_API_URL or) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 347 Tm
+(http://localhost:4000 -> falls back to in-browser local mode if API is unavailable.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 335 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 335 Tm
+(Local mode: seeds from /public/db.json, stores structured data in localStorage, and) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 323 Tm
+(offloads large payloads/assets to IndexedDB.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 311 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 311 Tm
+(Session state: current user is persisted in localStorage under propath_user.) Tj
+ET
+BT
+/F2 13 Tf
+0.09 0.24 0.53 rg
+1 0 0 1 44 295 Tm
+(How To Run) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 277 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 277 Tm
+(From repo root: npm install) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 265 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 265 Tm
+(Start dev server: npm start) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 253 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 253 Tm
+(Open http://localhost:3000 in a browser.) Tj
+ET
+BT
+/F2 11 Tf
+0.15 0.15 0.15 rg
+1 0 0 1 50 241 Tm
+(-) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 241 Tm
+(API setup: Not found in repo. The frontend code falls back to seeded local data if) Tj
+ET
+BT
+/F1 10 Tf
+0 0 0 rg
+1 0 0 1 62 229 Tm
+(the API is unavailable.) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Type /Page /Parent 5 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+5 0 obj
+<< /Type /Pages /Count 1 /Kids [4 0 R] >>
+endobj
+6 0 obj
+<< /Type /Catalog /Pages 5 0 R >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000079 00000 n 
+0000000154 00000 n 
+0000005275 00000 n 
+0000005411 00000 n 
+0000005468 00000 n 
+trailer
+<< /Size 7 /Root 6 0 R >>
+startxref
+5517
+%%EOF
