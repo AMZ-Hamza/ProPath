@@ -120,5 +120,5 @@ ProPath was developed as a two-person team project.
 
 ## My Contribution
 
-This repository represents collaborative work. Individual ownership of specific features is not asserted here; contribution details should be added only where they can be verified by the team.
+Worked across the Laravel backend and React frontend, including REST API development, authentication, role-based access control, database integration and frontend/API integration.
 
