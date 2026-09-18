@@ -1,0 +1,43 @@
+# Environment and secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and generated application output
+**/node_modules/
+**/vendor/
+proPath_frontEnd/build/
+proPath_backEnd/public/build/
+proPath_backEnd/public/hot
+proPath_backEnd/bootstrap/cache/*.php
+!proPath_backEnd/bootstrap/cache/.gitignore
+proPath_backEnd/storage/framework/**
+!proPath_backEnd/storage/framework/**/.gitignore
+proPath_backEnd/storage/logs/**
+!proPath_backEnd/storage/logs/.gitignore
+proPath_backEnd/database/*.sqlite*
+
+# Local project artifacts and uploads
+temporary/
+*.rar
+*.zip
+*.7z
+Rapport_de_Projet_ProPath.pdf
+
+# Test, editor, and operating-system files
+coverage/
+.phpunit.result.cache
+.phpunit.cache/
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.bak
+*.swp

@@ -1,0 +1,24 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow:
+
+task:
+the absence interface for student have to show his absence_counter and hourses (evry 1 = 2.5 hourses),
+the absence_counter updated(+1) whenne the theacher make that student absense /
+in الهيكلة in admin space the branches show like a grid whenne the admin click in a branch ,a card model show the classes studing in this branch in a select list 
+whenne you select a class ,the students studing in this class showing in a table.
+
+
+ Changes Made in db.json :
+1. absence_counter added to every student
+Each student now has an "absence_counter" field (integer) reflecting their total number of absences
+New branches array added (top-level)
+Three branches were created, each containing:
+
+id & name & code — branch identity
+model — an object with id, name, duration_years, and description
+classes — an array of class objects, each with id, name, year, and group_ids (referencing existing groups)
+branch_id added to students & groups
+Each student now has "branch_id" linking them to their branch.
+Each group now has "branch_id" for the same purpose.
+A missing group inf201 was also added to the groups array.
