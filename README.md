@@ -122,6 +122,3 @@ ProPath was developed as a two-person team project.
 
 This repository represents collaborative work. Individual ownership of specific features is not asserted here; contribution details should be added only where they can be verified by the team.
 
-## Screenshots
-
-No suitable project screenshots were included in the publishable source. Add real, redacted screenshots manually before publishing if you want a visual preview on GitHub.
